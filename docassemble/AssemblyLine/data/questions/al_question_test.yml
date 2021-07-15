@@ -32,20 +32,10 @@ objects:
 mandatory: True
 code: |
   al_intro_screen
-  test_label_functions
-  feature_tests_1
   al_user_bundle
-  chiropractors.gather()
-  other_parties.gather()
+  al_user_bundle.bg_action
   users.gather()
-  users[0].gender  
-  users[0].address.address
-  users[0].mailing_address.address
-  users[0].phone_number
-  trial_court
   big_text_field  
-  children.gather()
-  preview_screen
   basic_questions_signature_flow
   many_bundles_test
   end
@@ -206,6 +196,13 @@ subquestion: |
   **No zip, docx format**
   
   ${ al_user_bundle.download_list_html( include_zip=False, format="docx") }
+
+
+  ---
+
+  **View of combined file**
+
+  ${ al_user_bundle.download_html() }
   
   ---
   

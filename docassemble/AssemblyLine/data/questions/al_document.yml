@@ -31,3 +31,48 @@ subject: |
   % endif
 content: |
   Please find the document for ${ users } attached.
+---
+generic object: TestEvent
+event: x.test_event
+code: |
+  message('Test')
+---
+attachment:
+  variable name: helloworld
+  content: |
+    Hello, ${ user_name }.  It is ${ current_datetime().format_datetime() }.
+---
+code: |
+  bg_action
+  link_screen
+---
+generic object: ALDocumentBundle
+sets: x.bg_action
+code: |
+  x.bg_action = x.background_action_start()
+---
+# eventually will become the real event triggered by x.test_event
+event: assemble_it
+code: |
+  background_response(helloworld.pdf, document=the_document)
+---
+event: link_screen
+question: |
+  Your document
+subquestion: |
+  [Click here](${ interview_url_action('get_document', temporary=True) })
+---
+event: waiting_screen
+question: |
+  Hang tight, we are assembling your documents
+subquestion: |
+  This screen will reload every ten seconds until the answer is
+  available  
+reload: True
+---
+event: get_document
+code: |
+  if bg_action.ready():
+    response(file=bundle_of_interest.as_pdf(), content_type='application/pdf')
+  else:
+    waiting_screen

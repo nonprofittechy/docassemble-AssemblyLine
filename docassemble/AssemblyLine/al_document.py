@@ -1,16 +1,22 @@
 import re
 import os
 from typing import Any, Dict, List, Union
-from docassemble.base.functions import DANav
+from docassemble.base.functions import DANav, background_action
 from docassemble.base.util import log, word, DADict, DAList, DAObject, DAFile, DAFileCollection, \
     DAFileList, defined, value, pdf_concatenate, zip_file, DAOrderedDict, action_button_html, \
     include_docx_template, user_logged_in, user_info, action_argument, send_email, \
-    docx_concatenate, reconsider, get_config, space_to_underscore, LatitudeLongitude, DAStaticFile
+    docx_concatenate, reconsider, get_config, space_to_underscore, DAStaticFile
 
-__all__ = ['ALAddendumField', 'ALAddendumFieldDict', 'ALDocumentBundle', 'ALDocument', 'ALStaticDocument', 'ALDocumentBundleDict','safeattr','label','key']
+__all__ = ['ALAddendumField', 'ALAddendumFieldDict', 'ALDocumentBundle', 'ALDocument', \
+           'ALStaticDocument', 'ALDocumentBundleDict','safeattr','label','key', 'TestEvent']
 
 DEBUG_MODE = get_config('debug')
 
+class TestEvent(DAObject):
+  @property
+  def test_event(self):
+    log('you arrived')
+  
 def log_if_debug(text:str)->None:
   if DEBUG_MODE:
     log(text)
@@ -765,11 +771,13 @@ class ALDocumentBundle(DAList):
   elements:List[ALDocument] # or ALDocumentBundle
   cache: DALazyAttribute # stores cached DAFile output with a per-screen load lifetime
   enabled:bool # optional
+  test_thing: TestEvent
 
   def init(self, *pargs, **kwargs):
     super().init(*pargs, **kwargs)
     self.auto_gather=False
     self.gathered=True
+    self.test_thing = TestEvent()
     self.initializeAttribute('cache', DALazyAttribute)
     self.always_enabled = hasattr(self, 'enabled') and self.enabled
 
@@ -1063,6 +1071,10 @@ class ALDocumentBundle(DAList):
     harder to override for developers using this module.
     """
     return ""
+
+  def background_action_start(self):
+    log('Bundle instanceName: ' + self.instanceName)
+    return background_action(self.instanceName + '.test_thing.test_event', 'refresh')
 
 class ALDocumentBundleDict(DADict):
   """
