@@ -7,6 +7,7 @@ include:
   - al_visual.yml
   - al_document.yml
   - ql_baseline.yml
+  - ql_catchall.yml
 ---
 modules:
   - docassemble.ALToolbox.misc
