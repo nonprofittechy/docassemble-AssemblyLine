@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal, Union, Optional
+from typing import Dict, List, Literal, Union, Optional, TypedDict
 from docassemble.base.util import (
     Address,
     as_datetime,
@@ -67,6 +67,28 @@ def safe_subdivision_type(country_code):
         return None
 
 
+FieldEntry = TypedDict(
+    "FieldEntry",
+    {
+        "label": str,
+        "field": str,
+        "datatype": str,
+        "rows": int,
+        "help": str,
+        "show if": Union[str, Dict[str, str]],
+        "hide if": str,
+        "input type": str,
+        "default": str,
+        "code": str,
+        "address autocomplete": bool,
+        "choices": Union[List[str], Dict[str, str]],
+        "required": bool,
+    },
+    total=False,
+)
+Fields = List[FieldEntry]
+
+
 class ALAddress(Address):
     # Future-proofing TODO: this class can be used to help handle international addresses in the future.
     # Most likely, ask for international address as just 3 unstructured lines. Key thing is
@@ -81,7 +103,7 @@ class ALAddress(Address):
         show_county: bool = False,
         show_if: Union[str, Dict[str, str], None] = None,
         allow_no_address: bool = False,
-    ):
+    ) -> Fields:
         """
             Return a YAML structure representing the list of fields for the object's address.
             Optionally, allow the user to specify they do not have an address.
@@ -107,7 +129,7 @@ class ALAddress(Address):
         if not country_code:
             country_code = get_country()
         if allow_no_address:
-            fields = [
+            fields: Fields = [
                 {
                     "label": str(self.has_no_address_label),
                     "field": self.attr_name("has_no_address"),
@@ -674,13 +696,13 @@ class ALIndividual(Individual):
         person_or_business: str = "person",
         show_suffix: bool = True,
         show_if: Union[str, Dict[str, str], None] = None,
-    ) -> List[Dict[str, str]]:
+    ) -> Fields:
         """
         Return suitable field prompts for a name. If `person_or_business` is None, adds the
         proper "show ifs" and uses both the parts and the single entry
         """
         if person_or_business == "person":
-            fields = [
+            fields: Fields = [
                 {
                     "label": str(self.first_name_label),
                     "field": self.attr_name("name.first"),
@@ -808,7 +830,7 @@ class ALIndividual(Individual):
 
     def gender_fields(
         self, show_help=False, show_if: Union[str, Dict[str, str], None] = None
-    ):
+    ) -> Fields:
         """
         Return a standard gender input with "self described" option.
         """
@@ -825,7 +847,7 @@ class ALIndividual(Individual):
             "field": self.attr_name("gender"),
             "show if": {"variable": self.attr_name("gender"), "is": "self-described"},
         }
-        fields = [
+        fields: Fields = [
             {
                 "label": str(self.gender_label),
                 "field": self.attr_name("gender"),
@@ -914,7 +936,7 @@ class ALIndividual(Individual):
         choices: Optional[List[Dict[str, str]]] = None,
         style: str = "radio",
         show_if: Union[str, Dict[str, str], None] = None,
-    ):
+    ) -> Fields:
         """Return a standard language picker with an "other" input. Language should be specified as ISO 639-2 or -3 codes so it is compatible with the language_name() function."""
         if not choices:
             choices = [
@@ -927,7 +949,7 @@ class ALIndividual(Individual):
             "field": self.attr_name("language_other"),
             "show if": {"variable": self.attr_name("language"), "is": "other"},
         }
-        fields = [
+        fields: Fields = [
             {
                 "label": str(self.language_label),
                 "field": self.attr_name("language"),
@@ -941,7 +963,7 @@ class ALIndividual(Individual):
             fields[0]["show if"] = show_if
         return fields
 
-    def language_name(self):
+    def language_name(self) -> str:
         """Return the human-readable version of the individual's language, handling the "other" option."""
         if self.language == "other":
             return self.language_other
@@ -949,44 +971,44 @@ class ALIndividual(Individual):
             return language_name(self.language)
 
     @property
-    def gender_male(self):
+    def gender_male(self) -> bool:
         """Provide True/False for 'male' gender to assist with checkbox filling
         in PDFs with "skip undefined" turned on."""
         return self.gender == "male"
 
     @property
-    def gender_female(self):
+    def gender_female(self) -> bool:
         """Provide True/False for 'female' gender to assist with checkbox filling
         in PDFs with "skip undefined" turned on."""
         return self.gender == "female"
 
     @property
-    def gender_other(self):
+    def gender_other(self) -> bool:
         """Provide True/False for 'other' gender to assist with checkbox filling
         in PDFs with "skip undefined" turned on for forms without more inclusive options.
         """
         return (self.gender != "male") and (self.gender != "female")
 
     @property
-    def gender_nonbinary(self):
+    def gender_nonbinary(self) -> bool:
         """Provide True/False for 'nonbinary' gender to assist with checkbox filling
         in PDFs with "skip undefined" turned on."""
         return self.gender == "nonbinary"
 
     @property
-    def gender_unknown(self):
+    def gender_unknown(self) -> bool:
         """Provide True/False for 'unknown' gender to assist with checkbox filling
         in PDFs with "skip undefined" turned on."""
         return self.gender == "unknown"
 
     @property
-    def gender_undisclosed(self):
+    def gender_undisclosed(self) -> bool:
         """Provide True/False for 'prefer-not-to-say' gender to assist with checkbox filling
         in PDFs with "skip undefined" turned on."""
         return self.gender == "prefer-not-to-say"
 
     @property
-    def gender_self_described(self):
+    def gender_self_described(self) -> bool:
         """Provide True/False for 'self-described' gender to assist with checkbox filling
         in PDFs with "skip undefined" turned on."""
         return not (
@@ -1001,13 +1023,13 @@ class ALIndividual(Individual):
         pass
 
     @property
-    def initials(self):
+    def initials(self) -> str:
         """Return the individual's initials, like QKS for Quinten K Steenhuis"""
         return f"{self.name.first[:1]}{self.name.middle[:1] if hasattr(self.name,'middle') else ''}{self.name.last[:1] if hasattr(self.name, 'last') else ''}"
 
     def address_block(
         self, language=None, international=False, show_country=False, bare=False
-    ):
+    ) -> str:
         """Returns the person name address as a block, for use in mailings."""
         if this_thread.evaluation_context == "docx":
             return (

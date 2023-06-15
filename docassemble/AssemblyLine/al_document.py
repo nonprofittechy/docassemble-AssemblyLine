@@ -1316,7 +1316,7 @@ class ALDocumentBundle(DAList):
                 size="md",
                 classname="al_zip al_button",
             )
-            html += table_row(zip.title, zip_button)
+            html += table_row(zip.title, [zip_button])
 
         if include_email:
             html += self.send_email_table_row(key=key)

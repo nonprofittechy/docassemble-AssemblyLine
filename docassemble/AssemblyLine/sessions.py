@@ -988,7 +988,7 @@ def export_interview_variables(
     filename: Optional[str] = None,
     session_id: Optional[int] = None,
     variables_to_filter: Union[Set, List[str], None] = None,
-    output: DAFile = None,
+    output: Optional[DAFile] = None,
 ) -> DAFile:
     """
     Get a DAFile with the JSON representation of the specified session's interview answers. The output is compatible with
