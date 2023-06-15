@@ -81,7 +81,8 @@ FieldEntry = TypedDict(
         "default": str,
         "code": str,
         "address autocomplete": bool,
-        "choices": Union[List[str], Dict[str, str]],
+        "choices": Union[List[str], List[Dict[str, str]]],
+        "none of the above": str,
         "required": bool,
     },
     total=False,
@@ -614,9 +615,8 @@ class ALIndividual(Individual):
             try:
                 nums.append(
                     {
-                        phone_number_formatted(
-                            self.mobile_number, country=country
-                        ): "cell"
+                        phone_number_formatted(self.mobile_number, country=country)
+                        or self.mobile_number: "cell"
                     }
                 )
             except:
@@ -625,9 +625,8 @@ class ALIndividual(Individual):
             try:
                 nums.append(
                     {
-                        phone_number_formatted(
-                            self.phone_number, country=country
-                        ): "other"
+                        phone_number_formatted(self.phone_number, country=country)
+                        or self.phone_number: "other"
                     }
                 )
             except:
@@ -635,12 +634,15 @@ class ALIndividual(Individual):
         if len(nums) > 1:
             return comma_list(
                 [
-                    list(num.keys())[0] + " (" + list(num.values())[0] + ")"
+                    next(iter(num.keys()), "")
+                    + " ("
+                    + next(iter(num.values()), "")
+                    + ")"
                     for num in nums
                 ]
             )
         elif len(nums):
-            return list(nums[0].keys())[0]
+            return next(iter(nums[0].keys()), "")
         else:
             return ""
 
@@ -842,7 +844,7 @@ class ALIndividual(Individual):
             {str(self.gender_prefer_self_described_label): "self-described"},
             {str(self.gender_unknown_label): "unknown"},
         ]
-        self_described_input = {
+        self_described_input: FieldEntry = {
             "label": str(self.gender_self_described_label),
             "field": self.attr_name("gender"),
             "show if": {"variable": self.attr_name("gender"), "is": "self-described"},
@@ -891,12 +893,12 @@ class ALIndividual(Individual):
             show_unknown == "guess" and self.instanceName != "users[0]"
         ):
             final_choices.append({str(self.pronoun_unknown_label): "unknown"})
-        self_described_input = {
+        self_described_input: FieldEntry = {
             "label": str(self.pronoun_self_described_label),
             "field": self.attr_name("pronouns_self_described"),
             "show if": self.attr_name("pronouns['self-described']"),
         }
-        fields = [
+        fields: Fields = [
             {
                 "label": str(self.pronouns_label),
                 "field": self.attr_name("pronouns"),
@@ -944,7 +946,7 @@ class ALIndividual(Individual):
                 {"Spanish": "es"},
                 {"Other": "other"},
             ]
-        other = {
+        other: FieldEntry = {
             "label": str(self.language_other_label),
             "field": self.attr_name("language_other"),
             "show if": {"variable": self.attr_name("language"), "is": "other"},
