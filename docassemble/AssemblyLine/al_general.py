@@ -626,6 +626,9 @@ class ALAddress(Address):
 
         Warning: currently the normalized address will not be redacted if the address is impounded.
 
+        This has the additional side effect of populating the .zip attribute with the postal_code
+        attribute if it exists.
+
         Returns:
             Union[Address, "ALAddress"]: Normalized address if geocoding is successful, otherwise
                 the original address.
@@ -635,6 +638,8 @@ class ALAddress(Address):
         except:
             pass
         if self.was_geocoded_successfully() and hasattr(self, "norm_long"):
+            if hasattr(self.norm_long, "postal_code") and not hasattr(self.norm_long, "zip"):
+                self.norm_long.zip = self.norm_long.postal_code
             return self.norm_long
         return self
 
